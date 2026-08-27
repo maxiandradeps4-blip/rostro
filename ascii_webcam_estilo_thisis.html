@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>ASCII Webcam — estilo THISIS</title>
+<style>
+  :root{
+    --bg:#efefef;
+    --fg:#000;
+    --panel:rgba(255,255,255,.88);
+    --line:rgba(0,0,0,.14);
+    --text:#000;
+    --muted:rgba(0,0,0,.62);
+  }
+  *{box-sizing:border-box}
+  html,body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:var(--bg);
+    color:var(--text);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  }
+  #ascii{
+    position:fixed; inset:0;
+    width:100vw; height:100vh;
+    display:block;
+    background:var(--bg);
+  }
+  video{display:none}
+  .topbar{
+    position:fixed;
+    top:max(12px, env(safe-area-inset-top));
+    left:12px; right:12px;
+    z-index:10;
+    display:flex; justify-content:space-between; gap:10px;
+    pointer-events:none;
+  }
+  .brand,.actions{display:flex;align-items:center;gap:8px;pointer-events:auto}
+  .pill,button,select{
+    border:1px solid var(--line);
+    background:rgba(255,255,255,.8);
+    color:#000;
+    min-height:38px;
+    border-radius:999px;
+    padding:0 13px;
+    font:inherit;
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+  }
+  button{cursor:pointer}
+  button:hover{background:#fff}
+  .pill strong{font-size:12px;letter-spacing:.1em}
+  .pill span{font-size:11px;color:var(--muted);margin-left:6px}
+  #panel{
+    position:fixed;
+    left:12px;
+    bottom:max(12px, env(safe-area-inset-bottom));
+    z-index:11;
+    width:min(980px, calc(100vw - 24px));
+    border:1px solid var(--line);
+    background:var(--panel);
+    border-radius:18px;
+    padding:12px;
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    transition:transform .25s ease, opacity .25s ease;
+  }
+  #panel.hidden{
+    transform:translateY(calc(100% + 30px));
+    opacity:0;
+    pointer-events:none;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(6, minmax(0, 1fr));
+    gap:10px 12px;
+  }
+  .control{min-width:0}
+  .control label{
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    font-size:10px;
+    line-height:1.2;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+  .control output{color:#000}
+  input[type="range"], input[type="text"]{width:100%}
+  input[type="range"]{accent-color:#000}
+  input[type="text"]{
+    border:1px solid var(--line);
+    border-radius:10px;
+    min-height:36px;
+    padding:0 10px;
+    font:inherit;
+    background:#fff;
+    color:#000;
+  }
+  .wide{grid-column:span 2}
+  .footer{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)
+  }
+  .status{
+    font-size:10px;color:var(--muted);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+  }
+  .mini-actions{
+    display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end
+  }
+  .mini-actions button{
+    min-height:32px;padding:0 10px;font-size:10px
+  }
+  #start{
+    position:fixed; inset:0;
+    z-index:20;
+    display:grid; place-items:center;
+    background:radial-gradient(circle at 50% 42%,rgba(0,0,0,.05),transparent 34%),var(--bg);
+    padding:24px;
+  }
+  #start.gone{display:none}
+  .start-card{
+    width:min(640px,100%);
+    border:1px solid rgba(0,0,0,.12);
+    border-radius:22px;
+    background:rgba(255,255,255,.92);
+    padding:24px;
+    text-align:center;
+    box-shadow:0 10px 40px rgba(0,0,0,.06);
+  }
+  .start-card .ascii-logo{
+    white-space:pre;
+    color:#000;
+    font-size:clamp(8px,2vw,12px);
+    line-height:1;
+    margin:0 auto 18px;
+    overflow:hidden;
+  }
+  .start-card h1{
+    margin:0 0 8px;
+    font-size:clamp(22px,4vw,42px);
+    letter-spacing:-.05em;
+  }
+  .start-card p{
+    margin:0 auto 18px;
+    max-width:50ch;
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.5;
+  }
+  #startBtn{
+    min-height:48px;
+    padding:0 20px;
+    background:#000;
+    color:#fff;
+    border-color:#000;
+    font-weight:700;
+  }
+  .hint{margin-top:12px;font-size:10px;color:rgba(0,0,0,.42)}
+  @media (max-width:960px){
+    .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .wide{grid-column:span 3}
+  }
+  @media (max-width:760px){
+    .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .wide{grid-column:span 2}
+    .brand .pill span{display:none}
+    .actions select{max-width:124px}
+  }
+</style>
+</head>
+<body>
+<canvas id="ascii"></canvas>
+<video id="video" autoplay muted playsinline></video>
+
+<div id="start">
+  <div class="start-card">
+    <div class="ascii-logo">THISISNEVERTHATTHISISNEVERTHAT
+@@ == ✦ ✦ === @@@ == ✦ ✦ ==
+THISISNEVERTHATTHISISNEVERTHAT</div>
+    <h1>Webcam estilo tipográfico blanco y negro</h1>
+    <p>Esta versión detecta solo a la persona y la convierte en una silueta negra hecha de texto repetido, con vacíos blancos y símbolos flotando alrededor.</p>
+    <button id="startBtn">ACTIVAR CÁMARA</button>
+    <div class="hint">Usa segmentación en tiempo real. Recomendado: Chrome en HTTPS o localhost.</div>
+  </div>
+</div>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="pill"><strong>TYPE PORTRAIT</strong><span>SEGMENTACIÓN + TEXTO + CHISPAS</span></div>
+  </div>
+  <div class="actions">
+    <select id="cameraSelect" title="Cámara">
+      <option value="">Cámara</option>
+    </select>
+    <button id="togglePanel">CONTROLES</button>
+  </div>
+</div>
+
+<div id="panel">
+  <div class="grid">
+    <div class="control">
+      <label>Glifo <output id="fontOut">13</output></label>
+      <input id="fontSize" type="range" min="8" max="24" step="1" value="13">
+    </div>
+    <div class="control">
+      <label>Contraste <output id="contrastOut">1.85</output></label>
+      <input id="contrast" type="range" min=".7" max="3.0" step=".05" value="1.85">
+    </div>
+    <div class="control">
+      <label>Máscara persona <output id="personOut">0.58</output></label>
+      <input id="personThreshold" type="range" min=".15" max=".9" step=".01" value=".58">
+    </div>
+    <div class="control">
+      <label>Suavizado máscara <output id="featherOut">0.18</output></label>
+      <input id="feather" type="range" min="0" max=".45" step=".01" value=".18">
+    </div>
+    <div class="control">
+      <label>Densidad interior <output id="fillOut">0.90</output></label>
+      <input id="fillDensity" type="range" min=".20" max="1.0" step=".01" value=".90">
+    </div>
+    <div class="control">
+      <label>FPS <output id="fpsOut">20</output></label>
+      <input id="fps" type="range" min="8" max="30" step="1" value="20">
+    </div>
+
+    <div class="control">
+      <label>Vacíos blancos <output id="holeOut">0.48</output></label>
+      <input id="holeAmount" type="range" min="0" max="1" step=".01" value=".48">
+    </div>
+    <div class="control">
+      <label>Contorno negro <output id="edgeOut">0.82</output></label>
+      <input id="edgePower" type="range" min="0" max="1.6" step=".02" value=".82">
+    </div>
+    <div class="control">
+      <label>Decoración exterior <output id="sparkOut">0.34</output></label>
+      <input id="sparkle" type="range" min="0" max="1" step=".01" value=".34">
+    </div>
+    <div class="control">
+      <label>Radio decoración <output id="ringOut">0.44</output></label>
+      <input id="ringRadius" type="range" min="0" max="1" step=".01" value=".44">
+    </div>
+    <div class="control">
+      <label>Threshold tinta <output id="inkOut">0.37</output></label>
+      <input id="inkThreshold" type="range" min="0" max=".9" step=".01" value=".37">
+    </div>
+    <div class="control">
+      <label>Asimetría / drift <output id="driftOut">0.22</output></label>
+      <input id="drift" type="range" min="0" max="1" step=".01" value=".22">
+    </div>
+
+    <div class="control wide">
+      <label>Texto interior</label>
+      <input id="fillText" type="text" value="THISISNEVERTHAT ">
+    </div>
+    <div class="control wide">
+      <label>Símbolos exteriores</label>
+      <input id="sparkText" type="text" value="✦ ✦ ✦ @ @ = = » » • ">
+    </div>
+    <div class="control wide">
+      <label>Agujeros grandes <output id="chunkOut">0.42</output></label>
+      <input id="chunkiness" type="range" min="0" max="1" step=".01" value=".42">
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="status" id="status">Esperando cámara…</div>
+    <div class="mini-actions">
+      <button id="mirrorBtn">ESPEJO: ON</button>
+      <button id="invertBtn">INVERTIR: OFF</button>
+      <button id="shotBtn">PNG</button>
+      <button id="fullBtn">FULLSCREEN</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js"></script>
+<script>
+(() => {
+  const video = document.querySelector('#video');
+  const canvas = document.querySelector('#ascii');
+  const ctx = canvas.getContext('2d', { alpha:false });
+
+  const sample = document.createElement('canvas');
+  const sctx = sample.getContext('2d', { willReadFrequently:true });
+
+  const startScreen = document.querySelector('#start');
+  const startBtn = document.querySelector('#startBtn');
+  const cameraSelect = document.querySelector('#cameraSelect');
+  const status = document.querySelector('#status');
+  const panel = document.querySelector('#panel');
+
+  const sliders = {
+    fontSize: document.querySelector('#fontSize'),
+    contrast: document.querySelector('#contrast'),
+    personThreshold: document.querySelector('#personThreshold'),
+    feather: document.querySelector('#feather'),
+    fillDensity: document.querySelector('#fillDensity'),
+    fps: document.querySelector('#fps'),
+    holeAmount: document.querySelector('#holeAmount'),
+    edgePower: document.querySelector('#edgePower'),
+    sparkle: document.querySelector('#sparkle'),
+    ringRadius: document.querySelector('#ringRadius'),
+    inkThreshold: document.querySelector('#inkThreshold'),
+    drift: document.querySelector('#drift'),
+    chunkiness: document.querySelector('#chunkiness'),
+    fillText: document.querySelector('#fillText'),
+    sparkText: document.querySelector('#sparkText')
+  };
+  const outputs = {
+    fontSize: document.querySelector('#fontOut'),
+    contrast: document.querySelector('#contrastOut'),
+    personThreshold: document.querySelector('#personOut'),
+    feather: document.querySelector('#featherOut'),
+    fillDensity: document.querySelector('#fillOut'),
+    fps: document.querySelector('#fpsOut'),
+    holeAmount: document.querySelector('#holeOut'),
+    edgePower: document.querySelector('#edgeOut'),
+    sparkle: document.querySelector('#sparkOut'),
+    ringRadius: document.querySelector('#ringOut'),
+    inkThreshold: document.querySelector('#inkOut'),
+    drift: document.querySelector('#driftOut'),
+    chunkiness: document.querySelector('#chunkOut')
+  };
+
+  let stream = null;
+  let mirror = true;
+  let invert = false;
+  let cssW = innerWidth, cssH = innerHeight, dpr = 1;
+  let lastFrame = 0;
+  let running = false;
+  let fpsSmooth = 0;
+  let frameCounter = 0;
+  let segmentationBusy = false;
+  let latestMaskData = null;
+  let modelReady = false;
+
+  const selfieSegmentation = new SelfieSegmentation({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`
+  });
+  selfieSegmentation.setOptions({ modelSelection: 1 });
+  selfieSegmentation.onResults((results) => {
+    const cols = sample.width;
+    const rows = sample.height;
+    if (!results.segmentationMask || !cols || !rows) {
+      segmentationBusy = false;
+      return;
+    }
+    const temp = document.createElement('canvas');
+    temp.width = cols;
+    temp.height = rows;
+    const tctx = temp.getContext('2d', { willReadFrequently:true });
+    tctx.drawImage(results.segmentationMask, 0, 0, cols, rows);
+    latestMaskData = tctx.getImageData(0,0,cols,rows).data;
+    segmentationBusy = false;
+    modelReady = true;
+  });
+
+  function clamp(v,a=0,b=1){ return Math.max(a,Math.min(b,v)); }
+  function lerp(a,b,t){ return a+(b-a)*t; }
+  function val(k){
+    const el = sliders[k];
+    return el.type === 'text' ? el.value : parseFloat(el.value);
+  }
+  function syncUI(){
+    for(const k in outputs) outputs[k].value = sliders[k].value;
+  }
+  Object.values(sliders).forEach(el => {
+    const ev = el.type === 'text' ? 'input' : 'input';
+    el.addEventListener(ev, syncUI);
+  });
+  syncUI();
+
+  function resize(){
+    cssW = innerWidth;
+    cssH = innerHeight;
+    dpr = Math.min(devicePixelRatio || 1, 2);
+    canvas.width = Math.round(cssW*dpr);
+    canvas.height = Math.round(cssH*dpr);
+    canvas.style.width = cssW+'px';
+    canvas.style.height = cssH+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.imageSmoothingEnabled = false;
+  }
+  addEventListener('resize', resize, {passive:true});
+  resize();
+
+  function coverRect(srcW,srcH,dstW,dstH){
+    const srcAspect=srcW/srcH, dstAspect=dstW/dstH;
+    let sx=0,sy=0,sw=srcW,sh=srcH;
+    if(srcAspect>dstAspect){
+      sw=srcH*dstAspect;
+      sx=(srcW-sw)/2;
+    }else{
+      sh=srcW/dstAspect;
+      sy=(srcH-sh)/2;
+    }
+    return {sx,sy,sw,sh};
+  }
+
+  async function listCameras(){
+    try{
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const cams = devices.filter(d=>d.kind==='videoinput');
+      const current = cameraSelect.value;
+      cameraSelect.innerHTML = '';
+      cams.forEach((d,i)=>{
+        const op=document.createElement('option');
+        op.value=d.deviceId;
+        op.textContent=d.label || `Cámara ${i+1}`;
+        cameraSelect.appendChild(op);
+      });
+      if(current && cams.some(c=>c.deviceId===current)) cameraSelect.value=current;
+    }catch(e){}
+  }
+
+  async function startCamera(deviceId=''){
+    if(!navigator.mediaDevices?.getUserMedia){
+      status.textContent='Este navegador no permite acceso a cámara.';
+      return;
+    }
+    if(stream) stream.getTracks().forEach(t=>t.stop());
+
+    status.textContent='Solicitando cámara…';
+    try{
+      const constraints = {
+        audio:false,
+        video: deviceId
+          ? {deviceId:{exact:deviceId}, width:{ideal:1280}, height:{ideal:720}}
+          : {facingMode:'user', width:{ideal:1280}, height:{ideal:720}}
+      };
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      video.srcObject = stream;
+      await video.play();
+      await listCameras();
+
+      const track = stream.getVideoTracks()[0];
+      const settings = track.getSettings ? track.getSettings() : {};
+      if(settings.deviceId) cameraSelect.value = settings.deviceId;
+
+      status.textContent='Cámara activa · cargando segmentación…';
+      startScreen.classList.add('gone');
+      running = true;
+      lastFrame = 0;
+      requestAnimationFrame(loop);
+    }catch(err){
+      console.error(err);
+      status.textContent='No se pudo abrir la cámara.';
+      const msg = err?.name === 'NotAllowedError'
+        ? 'Permite el acceso a cámara en el navegador y vuelve a intentarlo.'
+        : 'La cámara no pudo iniciarse. Prueba en HTTPS o localhost.';
+      startBtn.textContent='REINTENTAR';
+      document.querySelector('.start-card p').textContent=msg;
+    }
+  }
+
+  startBtn.addEventListener('click',()=>startCamera());
+  cameraSelect.addEventListener('change',()=>startCamera(cameraSelect.value));
+
+  function maskAt(mask, cols, rows, x, y){
+    if(!mask) return 1;
+    x = Math.max(0, Math.min(cols-1, x));
+    y = Math.max(0, Math.min(rows-1, y));
+    const idx = (y*cols + x)*4;
+    return mask[idx] / 255;
+  }
+
+  function smoothMask(mask, cols, rows, x, y, feather){
+    if(!mask) return 1;
+    const c = maskAt(mask, cols, rows, x, y);
+    if(feather <= 0.001) return c;
+    const s1 = maskAt(mask, cols, rows, x-1, y);
+    const s2 = maskAt(mask, cols, rows, x+1, y);
+    const s3 = maskAt(mask, cols, rows, x, y-1);
+    const s4 = maskAt(mask, cols, rows, x, y+1);
+    const s5 = maskAt(mask, cols, rows, x-1, y-1);
+    const s6 = maskAt(mask, cols, rows, x+1, y-1);
+    const s7 = maskAt(mask, cols, rows, x-1, y+1);
+    const s8 = maskAt(mask, cols, rows, x+1, y+1);
+    const avg = (c*2 + s1+s2+s3+s4 + 0.75*(s5+s6+s7+s8)) / 9;
+    return lerp(c, avg, feather * 1.7);
+  }
+
+  function hash01(x,y,t){
+    let n = (x*374761393 + y*668265263 + t*69069) | 0;
+    n = (n ^ (n >> 13)) * 1274126177;
+    n ^= n >> 16;
+    return (n >>> 0) / 4294967295;
+  }
+
+  async function updateSegmentation(){
+    if(segmentationBusy || !video.videoWidth || !sample.width) return;
+    segmentationBusy = true;
+    try{
+      await selfieSegmentation.send({ image: video });
+    }catch(err){
+      segmentationBusy = false;
+      console.error(err);
+    }
+  }
+
+  function render(){
+    if(video.readyState < 2 || !video.videoWidth) return;
+
+    const fontSize = val('fontSize');
+    ctx.font = `900 ${fontSize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
+    ctx.textBaseline='top';
+    ctx.textAlign='left';
+
+    const charW = Math.max(4, ctx.measureText('M').width * 0.98);
+    const charH = fontSize * 1.02;
+    const cols = Math.ceil(cssW/charW)+1;
+    const rows = Math.ceil(cssH/charH)+1;
+
+    if(sample.width!==cols || sample.height!==rows){
+      sample.width=cols; sample.height=rows;
+    }
+
+    const r = coverRect(video.videoWidth,video.videoHeight,cols,rows);
+    sctx.save();
+    sctx.setTransform(1,0,0,1,0,0);
+    sctx.clearRect(0,0,cols,rows);
+    if(mirror){
+      sctx.translate(cols,0);
+      sctx.scale(-1,1);
+    }
+    sctx.drawImage(video,r.sx,r.sy,r.sw,r.sh,0,0,cols,rows);
+    sctx.restore();
+
+    const pixels=sctx.getImageData(0,0,cols,rows).data;
+    const mask = latestMaskData;
+    const N=cols*rows;
+    const lum=new Float32Array(N);
+    const msk=new Float32Array(N);
+
+    const contrast=val('contrast');
+    const feather=val('feather');
+    const personThreshold=val('personThreshold');
+
+    for(let i=0,p=0;i<N;i++,p+=4){
+      let y=(pixels[p]*0.2126 + pixels[p+1]*0.7152 + pixels[p+2]*0.0722)/255;
+      y=(y-.5)*contrast+.5;
+      y=clamp(y);
+      lum[i]=invert ? 1-y : y;
+      const px = i % cols;
+      const py = (i / cols) | 0;
+      msk[i]=smoothMask(mask, cols, rows, px, py, feather);
+    }
+
+    const fillDensity = val('fillDensity');
+    const holeAmount = val('holeAmount');
+    const edgePower = val('edgePower');
+    const sparkle = val('sparkle');
+    const ringRadius = val('ringRadius');
+    const inkThreshold = val('inkThreshold');
+    const drift = val('drift');
+    const chunkiness = val('chunkiness');
+
+    const fillTextRaw = (val('fillText') || 'THISISNEVERTHAT ').replace(/\s+/g,' ');
+    const fillChars = [...fillTextRaw];
+    const sparkRaw = val('sparkText') || '✦ @ = » • ';
+    const sparkChars = [...sparkRaw];
+
+    ctx.fillStyle = '#efefef';
+    ctx.fillRect(0,0,cssW,cssH);
+    ctx.fillStyle = '#000';
+
+    let lit = 0;
+    const timeBucket = frameCounter >> 2;
+
+    for(let y=0;y<rows;y++){
+      for(let x=0;x<cols;x++){
+        const i=y*cols+x;
+        const l=lum[i];
+        const mv=msk[i];
+        const px=x*charW;
+        const py=y*charH;
+
+        const xm=Math.max(0,x-1), xp=Math.min(cols-1,x+1);
+        const ym=Math.max(0,y-1), yp=Math.min(rows-1,y+1);
+
+        const a=lum[ym*cols+xm], b=lum[ym*cols+x], c=lum[ym*cols+xp];
+        const d=lum[y *cols+xm],                 f=lum[y *cols+xp];
+        const g=lum[yp*cols+xm], h=lum[yp*cols+x], j=lum[yp*cols+xp];
+
+        const gx=(-a+c) + (-2*d+2*f) + (-g+j);
+        const gy=(-a-2*b-c) + (g+2*h+j);
+        const edge=clamp(Math.hypot(gx,gy)/3.1);
+
+        const mmx0=msk[ym*cols+xm], mmx1=msk[ym*cols+x], mmx2=msk[ym*cols+xp];
+        const mmx3=msk[y *cols+xm],                mmx5=msk[y *cols+xp];
+        const mmx6=msk[yp*cols+xm], mmx7=msk[yp*cols+x], mmx8=msk[yp*cols+xp];
+        const mgx=(-mmx0+mmx2) + (-2*mmx3+2*mmx5) + (-mmx6+mmx8);
+        const mgy=(-mmx0-2*mmx1-mmx2) + (mmx6+2*mmx7+mmx8);
+        const silhouette = clamp(Math.hypot(mgx,mgy)/2.1);
+
+        // Inside subject
+        if(mv > personThreshold){
+          const norm = clamp((l-inkThreshold)/(1-inkThreshold));
+          const insideChance = clamp(fillDensity*0.88 + edge*edgePower*0.55 + (1-norm)*0.24);
+          const rnd = hash01(x,y,timeBucket);
+
+          // Create white holes / empty shapes inside face and torso.
+          const coarse = hash01((x*0.31)|0,(y*0.23)|0,5);
+          const holeField = (norm*0.88 + coarse*chunkiness + rnd*0.12) - edge*0.08;
+          const holeCut = 0.60 - holeAmount*0.34;
+
+          if(holeField > holeCut && rnd > 0.22 && edge < 0.52){
+            continue;
+          }
+          if(insideChance < 0.40) continue;
+
+          let ch;
+          // At edges use short marks to square the silhouette a bit.
+          if(silhouette > 0.17 && rnd > 0.52) {
+            const edgeGlyphs = ['T','I','/','-','"',"="];
+            ch = edgeGlyphs[(x + y + timeBucket) % edgeGlyphs.length];
+          } else {
+            const off = Math.floor((y*2 + x*(1+drift*2) + timeBucket*drift*2.3));
+            ch = fillChars[((off % fillChars.length) + fillChars.length) % fillChars.length];
+            if(ch === ' ' && rnd < 0.82){
+              ch = fillChars[(off+1) % fillChars.length] || 'T';
+            }
+          }
+
+          ctx.fillText(ch, px, py);
+          lit++;
+          continue;
+        }
+
+        // Outside subject: keep a decorative halo close-ish to silhouette.
+        const ring = mv > personThreshold - (0.33 + ringRadius*0.28) || silhouette > 0.03;
+        if(!ring) continue;
+
+        const near = clamp((personThreshold - mv + 0.04) * 2.7);
+        const p = sparkle * (0.15 + near*0.78 + silhouette*0.22);
+        const rr = hash01(x,y,timeBucket+17);
+
+        if(rr < p){
+          let ch = sparkChars[(x*3 + y + timeBucket) % sparkChars.length];
+          if(ch === ' ') ch = sparkChars[(x+y+3) % sparkChars.length] || '✦';
+          ctx.fillText(ch, px, py);
+        }
+      }
+    }
+
+    if(frameCounter % 10 === 0){
+      const subjectPct = latestMaskData ? Math.round((lit/N)*100) : 0;
+      const modelMsg = modelReady ? 'segmentación OK' : 'modelo cargando…';
+      status.textContent = `${cols}×${rows} glifos · ${Math.round(fpsSmooth)} fps · ${subjectPct}% tinta · ${modelMsg}`;
+    }
+  }
+
+  function loop(ts){
+    if(!running) return;
+    const target=1000/val('fps');
+    if(!lastFrame || ts-lastFrame>=target){
+      if(lastFrame){
+        const inst=1000/(ts-lastFrame);
+        fpsSmooth=fpsSmooth ? fpsSmooth*.86+inst*.14 : inst;
+      }
+      lastFrame=ts;
+      frameCounter++;
+      render();
+      updateSegmentation();
+    }
+    requestAnimationFrame(loop);
+  }
+
+  document.querySelector('#mirrorBtn').addEventListener('click',e=>{
+    mirror=!mirror;
+    e.currentTarget.textContent=`ESPEJO: ${mirror?'ON':'OFF'}`;
+  });
+  document.querySelector('#invertBtn').addEventListener('click',e=>{
+    invert=!invert;
+    e.currentTarget.textContent=`INVERTIR: ${invert?'ON':'OFF'}`;
+  });
+  document.querySelector('#togglePanel').addEventListener('click',()=>{
+    panel.classList.toggle('hidden');
+  });
+  document.querySelector('#fullBtn').addEventListener('click',async()=>{
+    try{
+      if(!document.fullscreenElement) await document.documentElement.requestFullscreen();
+      else await document.exitFullscreen();
+    }catch(e){}
+  });
+  document.querySelector('#shotBtn').addEventListener('click',()=>{
+    const a=document.createElement('a');
+    a.href=canvas.toDataURL('image/png');
+    a.download=`ascii-webcam-type-portrait-${Date.now()}.png`;
+    a.click();
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.key.toLowerCase()==='h') panel.classList.toggle('hidden');
+    if(e.key.toLowerCase()==='m') document.querySelector('#mirrorBtn').click();
+    if(e.key.toLowerCase()==='f') document.querySelector('#fullBtn').click();
+  });
+})();
+</script>
+</body>
+</html>
