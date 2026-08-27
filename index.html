@@ -3,14 +3,15 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>ASCII / ANSI Webcam — sin fondo + 3D</title>
+<title>ASCII Webcam — estilo THISIS</title>
 <style>
   :root{
-    --bg:#000;
-    --panel:rgba(8,8,12,.80);
-    --line:rgba(255,255,255,.16);
-    --text:#fff;
-    --muted:rgba(255,255,255,.66);
+    --bg:#efefef;
+    --fg:#000;
+    --panel:rgba(255,255,255,.88);
+    --line:rgba(0,0,0,.14);
+    --text:#000;
+    --muted:rgba(0,0,0,.62);
   }
   *{box-sizing:border-box}
   html,body{
@@ -18,15 +19,15 @@
     width:100%;
     height:100%;
     overflow:hidden;
-    background:#000;
-    color:#fff;
+    background:var(--bg);
+    color:var(--text);
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   }
   #ascii{
     position:fixed; inset:0;
     width:100vw; height:100vh;
     display:block;
-    background:#000;
+    background:var(--bg);
   }
   video{display:none}
   .topbar{
@@ -40,8 +41,8 @@
   .brand,.actions{display:flex;align-items:center;gap:8px;pointer-events:auto}
   .pill,button,select{
     border:1px solid var(--line);
-    background:rgba(0,0,0,.58);
-    color:#fff;
+    background:rgba(255,255,255,.8);
+    color:#000;
     min-height:38px;
     border-radius:999px;
     padding:0 13px;
@@ -50,7 +51,7 @@
     -webkit-backdrop-filter:blur(10px);
   }
   button{cursor:pointer}
-  button:hover{background:rgba(255,255,255,.09)}
+  button:hover{background:#fff}
   .pill strong{font-size:12px;letter-spacing:.1em}
   .pill span{font-size:11px;color:var(--muted);margin-left:6px}
   #panel{
@@ -58,7 +59,7 @@
     left:12px;
     bottom:max(12px, env(safe-area-inset-bottom));
     z-index:11;
-    width:min(900px, calc(100vw - 24px));
+    width:min(980px, calc(100vw - 24px));
     border:1px solid var(--line);
     background:var(--panel);
     border-radius:18px;
@@ -89,8 +90,18 @@
     color:var(--muted);
     margin-bottom:6px;
   }
-  .control output{color:#fff}
-  input[type="range"]{width:100%;accent-color:#fff}
+  .control output{color:#000}
+  input[type="range"], input[type="text"]{width:100%}
+  input[type="range"]{accent-color:#000}
+  input[type="text"]{
+    border:1px solid var(--line);
+    border-radius:10px;
+    min-height:36px;
+    padding:0 10px;
+    font:inherit;
+    background:#fff;
+    color:#000;
+  }
   .wide{grid-column:span 2}
   .footer{
     display:flex;align-items:center;justify-content:space-between;
@@ -110,21 +121,22 @@
     position:fixed; inset:0;
     z-index:20;
     display:grid; place-items:center;
-    background:radial-gradient(circle at 50% 42%,rgba(132,103,190,.10),transparent 34%),#000;
+    background:radial-gradient(circle at 50% 42%,rgba(0,0,0,.05),transparent 34%),var(--bg);
     padding:24px;
   }
   #start.gone{display:none}
   .start-card{
-    width:min(600px,100%);
-    border:1px solid rgba(255,255,255,.16);
+    width:min(640px,100%);
+    border:1px solid rgba(0,0,0,.12);
     border-radius:22px;
-    background:rgba(8,8,12,.88);
+    background:rgba(255,255,255,.92);
     padding:24px;
     text-align:center;
+    box-shadow:0 10px 40px rgba(0,0,0,.06);
   }
   .start-card .ascii-logo{
     white-space:pre;
-    color:#b9a1ec;
+    color:#000;
     font-size:clamp(8px,2vw,12px);
     line-height:1;
     margin:0 auto 18px;
@@ -145,12 +157,12 @@
   #startBtn{
     min-height:48px;
     padding:0 20px;
-    background:#fff;
-    color:#000;
-    border-color:#fff;
+    background:#000;
+    color:#fff;
+    border-color:#000;
     font-weight:700;
   }
-  .hint{margin-top:12px;font-size:10px;color:rgba(255,255,255,.45)}
+  .hint{margin-top:12px;font-size:10px;color:rgba(0,0,0,.42)}
   @media (max-width:960px){
     .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
     .wide{grid-column:span 3}
@@ -169,12 +181,11 @@
 
 <div id="start">
   <div class="start-card">
-    <div class="ascii-logo">   /==== SELFIE ====\
-  |  ASCII + ANSI  |
-  |  SEGMENT + 3D  |
-   \==============/</div>
-    <h1>ASCII Webcam sin fondo</h1>
-    <p>Esta versión detecta a la persona, elimina el fondo y genera un look más tridimensional con iluminación, relieve y contornos tipográficos.</p>
+    <div class="ascii-logo">THISISNEVERTHATTHISISNEVERTHAT
+@@ == ✦ ✦ === @@@ == ✦ ✦ ==
+THISISNEVERTHATTHISISNEVERTHAT</div>
+    <h1>Webcam estilo tipográfico blanco y negro</h1>
+    <p>Esta versión detecta solo a la persona y la convierte en una silueta negra hecha de texto repetido, con vacíos blancos y símbolos flotando alrededor.</p>
     <button id="startBtn">ACTIVAR CÁMARA</button>
     <div class="hint">Usa segmentación en tiempo real. Recomendado: Chrome en HTTPS o localhost.</div>
   </div>
@@ -182,7 +193,7 @@
 
 <div class="topbar">
   <div class="brand">
-    <div class="pill"><strong>PORTRAIT MODE</strong><span>ASCII + SEGMENTATION + 3D</span></div>
+    <div class="pill"><strong>TYPE PORTRAIT</strong><span>SEGMENTACIÓN + TEXTO + CHISPAS</span></div>
   </div>
   <div class="actions">
     <select id="cameraSelect" title="Cámara">
@@ -199,62 +210,62 @@
       <input id="fontSize" type="range" min="8" max="24" step="1" value="13">
     </div>
     <div class="control">
-      <label>Contraste <output id="contrastOut">1.9</output></label>
-      <input id="contrast" type="range" min=".7" max="3.0" step=".05" value="1.9">
+      <label>Contraste <output id="contrastOut">1.85</output></label>
+      <input id="contrast" type="range" min=".7" max="3.0" step=".05" value="1.85">
     </div>
     <div class="control">
-      <label>Densidad <output id="densityOut">0.60</output></label>
-      <input id="density" type="range" min=".15" max=".95" step=".01" value=".60">
+      <label>Máscara persona <output id="personOut">0.58</output></label>
+      <input id="personThreshold" type="range" min=".15" max=".9" step=".01" value=".58">
     </div>
     <div class="control">
-      <label>Contorno <output id="edgeOut">0.92</output></label>
-      <input id="edgePower" type="range" min="0" max="1.8" step=".02" value=".92">
+      <label>Suavizado máscara <output id="featherOut">0.18</output></label>
+      <input id="feather" type="range" min="0" max=".45" step=".01" value=".18">
     </div>
     <div class="control">
-      <label>Dither <output id="ditherOut">0.18</output></label>
-      <input id="dither" type="range" min="0" max=".6" step=".01" value=".18">
+      <label>Densidad interior <output id="fillOut">0.90</output></label>
+      <input id="fillDensity" type="range" min=".20" max="1.0" step=".01" value=".90">
     </div>
     <div class="control">
-      <label>FPS <output id="fpsOut">22</output></label>
-      <input id="fps" type="range" min="8" max="30" step="1" value="22">
+      <label>FPS <output id="fpsOut">20</output></label>
+      <input id="fps" type="range" min="8" max="30" step="1" value="20">
     </div>
 
     <div class="control">
-      <label>Umbral negro <output id="blackOut">0.22</output></label>
-      <input id="blackThreshold" type="range" min="0" max=".65" step=".01" value=".22">
+      <label>Vacíos blancos <output id="holeOut">0.48</output></label>
+      <input id="holeAmount" type="range" min="0" max="1" step=".01" value=".48">
     </div>
     <div class="control">
-      <label>Violeta <output id="purpleOut">0.50</output></label>
-      <input id="purpleBias" type="range" min="0" max="1" step=".01" value=".50">
+      <label>Contorno negro <output id="edgeOut">0.82</output></label>
+      <input id="edgePower" type="range" min="0" max="1.6" step=".02" value=".82">
     </div>
     <div class="control">
-      <label>Blancos <output id="whiteOut">0.73</output></label>
-      <input id="whitePoint" type="range" min=".35" max=".95" step=".01" value=".73">
+      <label>Decoración exterior <output id="sparkOut">0.34</output></label>
+      <input id="sparkle" type="range" min="0" max="1" step=".01" value=".34">
     </div>
     <div class="control">
-      <label>Máscara persona <output id="personOut">0.56</output></label>
-      <input id="personThreshold" type="range" min=".15" max=".9" step=".01" value=".56">
+      <label>Radio decoración <output id="ringOut">0.44</output></label>
+      <input id="ringRadius" type="range" min="0" max="1" step=".01" value=".44">
     </div>
     <div class="control">
-      <label>Relieve 3D <output id="depthOut">0.72</output></label>
-      <input id="depth" type="range" min="0" max="1.5" step=".01" value=".72">
+      <label>Threshold tinta <output id="inkOut">0.37</output></label>
+      <input id="inkThreshold" type="range" min="0" max=".9" step=".01" value=".37">
     </div>
     <div class="control">
-      <label>Brillo 3D <output id="shineOut">0.42</output></label>
-      <input id="shine" type="range" min="0" max="1" step=".01" value=".42">
+      <label>Asimetría / drift <output id="driftOut">0.22</output></label>
+      <input id="drift" type="range" min="0" max="1" step=".01" value=".22">
     </div>
 
     <div class="control wide">
-      <label>Suavizado máscara <output id="featherOut">0.16</output></label>
-      <input id="feather" type="range" min="0" max=".45" step=".01" value=".16">
+      <label>Texto interior</label>
+      <input id="fillText" type="text" value="THISISNEVERTHAT ">
     </div>
     <div class="control wide">
-      <label>Sombra/profundidad <output id="shadowOut">0.55</output></label>
-      <input id="shadow" type="range" min="0" max="1" step=".01" value=".55">
+      <label>Símbolos exteriores</label>
+      <input id="sparkText" type="text" value="✦ ✦ ✦ @ @ = = » » • ">
     </div>
     <div class="control wide">
-      <label>Separación sujeto-fondo <output id="popOut">0.46</output></label>
-      <input id="pop" type="range" min="0" max="1" step=".01" value=".46">
+      <label>Agujeros grandes <output id="chunkOut">0.42</output></label>
+      <input id="chunkiness" type="range" min="0" max="1" step=".01" value=".42">
     </div>
   </div>
 
@@ -274,7 +285,7 @@
 (() => {
   const video = document.querySelector('#video');
   const canvas = document.querySelector('#ascii');
-  const ctx = canvas.getContext('2d', { alpha:true });
+  const ctx = canvas.getContext('2d', { alpha:false });
 
   const sample = document.createElement('canvas');
   const sctx = sample.getContext('2d', { willReadFrequently:true });
@@ -288,37 +299,34 @@
   const sliders = {
     fontSize: document.querySelector('#fontSize'),
     contrast: document.querySelector('#contrast'),
-    density: document.querySelector('#density'),
-    edgePower: document.querySelector('#edgePower'),
-    dither: document.querySelector('#dither'),
-    fps: document.querySelector('#fps'),
-    blackThreshold: document.querySelector('#blackThreshold'),
-    purpleBias: document.querySelector('#purpleBias'),
-    whitePoint: document.querySelector('#whitePoint'),
     personThreshold: document.querySelector('#personThreshold'),
-    depth: document.querySelector('#depth'),
-    shine: document.querySelector('#shine'),
     feather: document.querySelector('#feather'),
-    shadow: document.querySelector('#shadow'),
-    pop: document.querySelector('#pop')
+    fillDensity: document.querySelector('#fillDensity'),
+    fps: document.querySelector('#fps'),
+    holeAmount: document.querySelector('#holeAmount'),
+    edgePower: document.querySelector('#edgePower'),
+    sparkle: document.querySelector('#sparkle'),
+    ringRadius: document.querySelector('#ringRadius'),
+    inkThreshold: document.querySelector('#inkThreshold'),
+    drift: document.querySelector('#drift'),
+    chunkiness: document.querySelector('#chunkiness'),
+    fillText: document.querySelector('#fillText'),
+    sparkText: document.querySelector('#sparkText')
   };
-
   const outputs = {
     fontSize: document.querySelector('#fontOut'),
     contrast: document.querySelector('#contrastOut'),
-    density: document.querySelector('#densityOut'),
-    edgePower: document.querySelector('#edgeOut'),
-    dither: document.querySelector('#ditherOut'),
-    fps: document.querySelector('#fpsOut'),
-    blackThreshold: document.querySelector('#blackOut'),
-    purpleBias: document.querySelector('#purpleOut'),
-    whitePoint: document.querySelector('#whiteOut'),
     personThreshold: document.querySelector('#personOut'),
-    depth: document.querySelector('#depthOut'),
-    shine: document.querySelector('#shineOut'),
     feather: document.querySelector('#featherOut'),
-    shadow: document.querySelector('#shadowOut'),
-    pop: document.querySelector('#popOut')
+    fillDensity: document.querySelector('#fillOut'),
+    fps: document.querySelector('#fpsOut'),
+    holeAmount: document.querySelector('#holeOut'),
+    edgePower: document.querySelector('#edgeOut'),
+    sparkle: document.querySelector('#sparkOut'),
+    ringRadius: document.querySelector('#ringOut'),
+    inkThreshold: document.querySelector('#inkOut'),
+    drift: document.querySelector('#driftOut'),
+    chunkiness: document.querySelector('#chunkOut')
   };
 
   let stream = null;
@@ -336,9 +344,7 @@
   const selfieSegmentation = new SelfieSegmentation({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`
   });
-  selfieSegmentation.setOptions({
-    modelSelection: 1
-  });
+  selfieSegmentation.setOptions({ modelSelection: 1 });
   selfieSegmentation.onResults((results) => {
     const cols = sample.width;
     const rows = sample.height;
@@ -356,38 +362,19 @@
     modelReady = true;
   });
 
-  const PALETTE = ['#8f71cd','#a9dde1','#f4f4ef'];
-  const SHADOW = 'rgba(55,36,88,0.90)';
-  const HILITE = 'rgba(235,245,255,0.70)';
-  const FILL = ['.',':','-','=','+','*','#','#'];
-  const BAYER4 = [
-     0, 8, 2,10,
-    12, 4,14, 6,
-     3,11, 1, 9,
-    15, 7,13, 5
-  ];
-
   function clamp(v,a=0,b=1){ return Math.max(a,Math.min(b,v)); }
-  function lerp(a,b,t){ return a + (b-a)*t; }
-  function val(k){ return parseFloat(sliders[k].value); }
-  function mixHex(a,b,t){
-    const pa = a.match(/\w\w/g).map(x=>parseInt(x,16));
-    const pb = b.match(/\w\w/g).map(x=>parseInt(x,16));
-    const r = Math.round(lerp(pa[0],pb[0],t));
-    const g = Math.round(lerp(pa[1],pb[1],t));
-    const bb = Math.round(lerp(pa[2],pb[2],t));
-    return `rgb(${r},${g},${bb})`;
-  }
-  function hash01(x,y,t){
-    let n = (x*374761393 + y*668265263 + t*69069) | 0;
-    n = (n ^ (n >> 13)) * 1274126177;
-    n ^= n >> 16;
-    return (n >>> 0) / 4294967295;
+  function lerp(a,b,t){ return a+(b-a)*t; }
+  function val(k){
+    const el = sliders[k];
+    return el.type === 'text' ? el.value : parseFloat(el.value);
   }
   function syncUI(){
     for(const k in outputs) outputs[k].value = sliders[k].value;
   }
-  Object.values(sliders).forEach(el => el.addEventListener('input', syncUI));
+  Object.values(sliders).forEach(el => {
+    const ev = el.type === 'text' ? 'input' : 'input';
+    el.addEventListener(ev, syncUI);
+  });
   syncUI();
 
   function resize(){
@@ -476,27 +463,6 @@
   startBtn.addEventListener('click',()=>startCamera());
   cameraSelect.addEventListener('change',()=>startCamera(cameraSelect.value));
 
-  function edgeGlyph(gx,gy){
-    let a = Math.atan2(gy,gx) + Math.PI/2;
-    a = (a + Math.PI*2) % Math.PI;
-    const d = a * 180/Math.PI;
-    if(d < 22.5 || d >= 157.5) return '-';
-    if(d < 67.5) return '\\';
-    if(d < 112.5) return '|';
-    return '/';
-  }
-
-  async function updateSegmentation(){
-    if(segmentationBusy || !video.videoWidth || !sample.width) return;
-    segmentationBusy = true;
-    try{
-      await selfieSegmentation.send({ image: video });
-    }catch(err){
-      segmentationBusy = false;
-      console.error(err);
-    }
-  }
-
   function maskAt(mask, cols, rows, x, y){
     if(!mask) return 1;
     x = Math.max(0, Math.min(cols-1, x));
@@ -518,18 +484,36 @@
     const s7 = maskAt(mask, cols, rows, x-1, y+1);
     const s8 = maskAt(mask, cols, rows, x+1, y+1);
     const avg = (c*2 + s1+s2+s3+s4 + 0.75*(s5+s6+s7+s8)) / 9;
-    return lerp(c, avg, feather * 1.6);
+    return lerp(c, avg, feather * 1.7);
+  }
+
+  function hash01(x,y,t){
+    let n = (x*374761393 + y*668265263 + t*69069) | 0;
+    n = (n ^ (n >> 13)) * 1274126177;
+    n ^= n >> 16;
+    return (n >>> 0) / 4294967295;
+  }
+
+  async function updateSegmentation(){
+    if(segmentationBusy || !video.videoWidth || !sample.width) return;
+    segmentationBusy = true;
+    try{
+      await selfieSegmentation.send({ image: video });
+    }catch(err){
+      segmentationBusy = false;
+      console.error(err);
+    }
   }
 
   function render(){
     if(video.readyState < 2 || !video.videoWidth) return;
 
     const fontSize = val('fontSize');
-    ctx.font = `${fontSize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
+    ctx.font = `900 ${fontSize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
     ctx.textBaseline='top';
     ctx.textAlign='left';
 
-    const charW = Math.max(4, ctx.measureText('M').width);
+    const charW = Math.max(4, ctx.measureText('M').width * 0.98);
     const charH = fontSize * 1.02;
     const cols = Math.ceil(cssW/charW)+1;
     const rows = Math.ceil(cssH/charH)+1;
@@ -556,8 +540,8 @@
     const msk=new Float32Array(N);
 
     const contrast=val('contrast');
-    const personThreshold=val('personThreshold');
     const feather=val('feather');
+    const personThreshold=val('personThreshold');
 
     for(let i=0,p=0;i<N;i++,p+=4){
       let y=(pixels[p]*0.2126 + pixels[p+1]*0.7152 + pixels[p+2]*0.0722)/255;
@@ -569,30 +553,34 @@
       msk[i]=smoothMask(mask, cols, rows, px, py, feather);
     }
 
-    const edgeP=val('edgePower');
-    const ditherP=val('dither');
-    const density=val('density');
-    const black=val('blackThreshold');
-    const purpleBias=val('purpleBias');
-    const whitePoint=val('whitePoint');
-    const depth=val('depth');
-    const shine=val('shine');
-    const shadow=val('shadow');
-    const pop=val('pop');
+    const fillDensity = val('fillDensity');
+    const holeAmount = val('holeAmount');
+    const edgePower = val('edgePower');
+    const sparkle = val('sparkle');
+    const ringRadius = val('ringRadius');
+    const inkThreshold = val('inkThreshold');
+    const drift = val('drift');
+    const chunkiness = val('chunkiness');
 
-    ctx.clearRect(0,0,cssW,cssH);
-    ctx.fillStyle='#000';
+    const fillTextRaw = (val('fillText') || 'THISISNEVERTHAT ').replace(/\s+/g,' ');
+    const fillChars = [...fillTextRaw];
+    const sparkRaw = val('sparkText') || '✦ @ = » • ';
+    const sparkChars = [...sparkRaw];
+
+    ctx.fillStyle = '#efefef';
     ctx.fillRect(0,0,cssW,cssH);
+    ctx.fillStyle = '#000';
 
-    let lit=0;
-    const timeBucket=(frameCounter>>2);
+    let lit = 0;
+    const timeBucket = frameCounter >> 2;
 
-    // 3D pass: draw shadow/body/highlight glyphs individually for more volume.
     for(let y=0;y<rows;y++){
       for(let x=0;x<cols;x++){
         const i=y*cols+x;
-        const maskV = msk[i];
-        if(maskV < personThreshold * 0.35) continue;
+        const l=lum[i];
+        const mv=msk[i];
+        const px=x*charW;
+        const py=y*charH;
 
         const xm=Math.max(0,x-1), xp=Math.min(cols-1,x+1);
         const ym=Math.max(0,y-1), yp=Math.min(rows-1,y+1);
@@ -601,102 +589,71 @@
         const d=lum[y *cols+xm],                 f=lum[y *cols+xp];
         const g=lum[yp*cols+xm], h=lum[yp*cols+x], j=lum[yp*cols+xp];
 
-        const mx0=msk[ym*cols+xm], mx1=msk[ym*cols+x], mx2=msk[ym*cols+xp];
-        const mx3=msk[y *cols+xm],               mx5=msk[y *cols+xp];
-        const mx6=msk[yp*cols+xm], mx7=msk[yp*cols+x], mx8=msk[yp*cols+xp];
-
         const gx=(-a+c) + (-2*d+2*f) + (-g+j);
         const gy=(-a-2*b-c) + (g+2*h+j);
-        const edge=clamp(Math.hypot(gx,gy)/3.3);
+        const edge=clamp(Math.hypot(gx,gy)/3.1);
 
-        const mgx=(-mx0+mx2) + (-2*mx3+2*mx5) + (-mx6+mx8);
-        const mgy=(-mx0-2*mx1-mx2) + (mx6+2*mx7+mx8);
-        const silhouette = clamp(Math.hypot(mgx,mgy)/2.2);
+        const mmx0=msk[ym*cols+xm], mmx1=msk[ym*cols+x], mmx2=msk[ym*cols+xp];
+        const mmx3=msk[y *cols+xm],                mmx5=msk[y *cols+xp];
+        const mmx6=msk[yp*cols+xm], mmx7=msk[yp*cols+x], mmx8=msk[yp*cols+xp];
+        const mgx=(-mmx0+mmx2) + (-2*mmx3+2*mmx5) + (-mmx6+mmx8);
+        const mgy=(-mmx0-2*mmx1-mmx2) + (mmx6+2*mmx7+mmx8);
+        const silhouette = clamp(Math.hypot(mgx,mgy)/2.1);
 
-        const by=BAYER4[(y&3)*4+(x&3)]/15 - .5;
-        const l=clamp(lum[i] + by*ditherP);
+        // Inside subject
+        if(mv > personThreshold){
+          const norm = clamp((l-inkThreshold)/(1-inkThreshold));
+          const insideChance = clamp(fillDensity*0.88 + edge*edgePower*0.55 + (1-norm)*0.24);
+          const rnd = hash01(x,y,timeBucket);
 
-        const presence = clamp(l*(0.84 + density*.18) + edge*edgeP + silhouette*pop*.65 + (maskV-personThreshold)*0.75);
-        const cutoff = black + (1-density)*.18;
-        const jitter=(hash01(x,y,timeBucket)-.5)*.055;
+          // Create white holes / empty shapes inside face and torso.
+          const coarse = hash01((x*0.31)|0,(y*0.23)|0,5);
+          const holeField = (norm*0.88 + coarse*chunkiness + rnd*0.12) - edge*0.08;
+          const holeCut = 0.60 - holeAmount*0.34;
 
-        if(maskV < personThreshold && presence + jitter < cutoff + 0.2) continue;
-        if(maskV < personThreshold * 0.92 && silhouette < 0.08) continue;
+          if(holeField > holeCut && rnd > 0.22 && edge < 0.52){
+            continue;
+          }
+          if(insideChance < 0.40) continue;
 
-        let ch;
-        const edgeGate = 0.18 + (1-edgeP/1.8)*0.14;
-        if(edge > edgeGate && edge*edgeP > l*.35){
-          ch=edgeGlyph(gx,gy);
-          if((edge>.50 || silhouette>.28) && hash01(x,y,13)>.63) ch = hash01(x,y,31)>.5 ? '#' : '+';
-        }else if(silhouette > .18){
-          ch = hash01(x,y,21)>.45 ? '#' : '+';
-        }else{
-          const q=clamp((l-black)/(1-black));
-          let idx=Math.floor(q*(FILL.length-1));
-          idx=Math.max(0,Math.min(FILL.length-1,idx));
-          ch=FILL[idx];
-          const rr=hash01(x,y,7);
-          if(q>.62 && rr>.74) ch='#';
-          else if(q>.43 && rr>.82) ch='+';
+          let ch;
+          // At edges use short marks to square the silhouette a bit.
+          if(silhouette > 0.17 && rnd > 0.52) {
+            const edgeGlyphs = ['T','I','/','-','"',"="];
+            ch = edgeGlyphs[(x + y + timeBucket) % edgeGlyphs.length];
+          } else {
+            const off = Math.floor((y*2 + x*(1+drift*2) + timeBucket*drift*2.3));
+            ch = fillChars[((off % fillChars.length) + fillChars.length) % fillChars.length];
+            if(ch === ' ' && rnd < 0.82){
+              ch = fillChars[(off+1) % fillChars.length] || 'T';
+            }
+          }
+
+          ctx.fillText(ch, px, py);
+          lit++;
+          continue;
         }
 
-        // Pseudo 3D shading from local "normal"
-        let nx = -gx;
-        let ny = -gy;
-        let nz = 1 / Math.max(.25, 1-depth*.62);
-        const nl = Math.hypot(nx,ny,nz) || 1;
-        nx/=nl; ny/=nl; nz/=nl;
+        // Outside subject: keep a decorative halo close-ish to silhouette.
+        const ring = mv > personThreshold - (0.33 + ringRadius*0.28) || silhouette > 0.03;
+        if(!ring) continue;
 
-        // light from upper-left/front
-        const lx = -0.52, ly = -0.36, lz = 0.77;
-        const diff = clamp(nx*lx + ny*ly + nz*lz, 0, 1);
-        const spec = Math.pow(clamp((diff + nz)*0.52,0,1), 5.5) * shine;
+        const near = clamp((personThreshold - mv + 0.04) * 2.7);
+        const p = sparkle * (0.15 + near*0.78 + silhouette*0.22);
+        const rr = hash01(x,y,timeBucket+17);
 
-        let baseColor;
-        if(l>=whitePoint || edge>.70){
-          baseColor=PALETTE[2];
-        }else if(silhouette > purpleBias*.52 || edge > purpleBias*.65 || l < purpleBias*.58){
-          baseColor=PALETTE[0];
-        }else{
-          baseColor=PALETTE[1];
+        if(rr < p){
+          let ch = sparkChars[(x*3 + y + timeBucket) % sparkChars.length];
+          if(ch === ' ') ch = sparkChars[(x+y+3) % sparkChars.length] || '✦';
+          ctx.fillText(ch, px, py);
         }
-
-        let color = baseColor;
-        color = mixHex(baseColor, '#ffffff', spec*0.9 + diff*0.16);
-        if(silhouette > 0.22) color = mixHex(color, '#ceb8f0', silhouette*0.30);
-
-        const px = x*charW;
-        const py = y*charH;
-
-        // Shadow pass to separate subject from removed background.
-        const shAlpha = clamp(shadow * (0.35 + silhouette*.75 + (1-diff)*0.18) * clamp((maskV-personThreshold+0.22)*1.8));
-        if(shAlpha > 0.02){
-          ctx.fillStyle = `rgba(55,36,88,${shAlpha.toFixed(3)})`;
-          ctx.fillText(ch, px + 1 + depth*0.55, py + 1 + depth*0.65);
-        }
-
-        // Main glyph
-        const alpha = clamp(0.68 + maskV*0.4 + diff*0.18);
-        ctx.fillStyle = color.startsWith('rgb(')
-          ? color.replace('rgb(', 'rgba(').replace(')', `,${alpha.toFixed(3)})`)
-          : color;
-        ctx.fillText(ch, px, py);
-
-        // Highlight emboss for 3D feel.
-        const hiAlpha = clamp((spec*0.82 + diff*0.22 + silhouette*0.08) * 0.95);
-        if(hiAlpha > 0.05 && ch !== '.' && ch !== ':'){
-          ctx.fillStyle = `rgba(240,248,255,${hiAlpha.toFixed(3)})`;
-          ctx.fillText(ch, px - 0.6, py - 0.6);
-        }
-
-        lit++;
       }
     }
 
     if(frameCounter % 10 === 0){
       const subjectPct = latestMaskData ? Math.round((lit/N)*100) : 0;
       const modelMsg = modelReady ? 'segmentación OK' : 'modelo cargando…';
-      status.textContent = `${cols}×${rows} glifos · ${Math.round(fpsSmooth)} fps · ${subjectPct}% sujeto · ${modelMsg}`;
+      status.textContent = `${cols}×${rows} glifos · ${Math.round(fpsSmooth)} fps · ${subjectPct}% tinta · ${modelMsg}`;
     }
   }
 
@@ -736,7 +693,7 @@
   document.querySelector('#shotBtn').addEventListener('click',()=>{
     const a=document.createElement('a');
     a.href=canvas.toDataURL('image/png');
-    a.download=`ascii-webcam-portrait-${Date.now()}.png`;
+    a.download=`ascii-webcam-type-portrait-${Date.now()}.png`;
     a.click();
   });
   document.addEventListener('keydown',e=>{
